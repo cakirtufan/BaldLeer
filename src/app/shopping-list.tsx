@@ -24,7 +24,7 @@ export default function ShoppingListScreen() {
       {state.shoppingList.length === 0 ? (
         <EmptyState
           title="Noch keine Artikel"
-          text="Wenn ein Vorschlag relevant wirkt, kann er hier für den nächsten Filial- oder Online-Einkauf gemerkt werden."
+          text="Wenn ein BaldLeer-Vorschlag relevant wirkt, kann er hier für den nächsten Filial- oder Online-Einkauf gemerkt werden."
         />
       ) : (
         state.shoppingList.map((item) => (

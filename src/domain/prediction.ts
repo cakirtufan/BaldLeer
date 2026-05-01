@@ -38,12 +38,29 @@ function timingCopy(daysUntilNext: number): string {
 
 export function classifyConfidence(purchaseCount: number, intervals: number[]): Confidence {
   if (purchaseCount <= 2) return "low";
-  const avg = average(intervals);
-  const maxDeviation = Math.max(...intervals.map((value) => Math.abs(value - avg)));
-  const variability = avg === 0 ? 0 : maxDeviation / avg;
+  const variability = intervalVariability(intervals);
   if (variability > 0.45) return "low";
   if (purchaseCount >= 5 && variability <= 0.25) return "high";
   return "medium";
+}
+
+export function intervalVariability(intervals: number[]): number {
+  if (intervals.length === 0) return 0;
+  const avg = average(intervals);
+  const maxDeviation = Math.max(...intervals.map((value) => Math.abs(value - avg)));
+  return avg === 0 ? 0 : maxDeviation / avg;
+}
+
+function intervalStabilityLabel(variability: number): "stabil" | "mittel" | "unregelmäßig" {
+  if (variability <= 0.25) return "stabil";
+  if (variability <= 0.45) return "mittel";
+  return "unregelmäßig";
+}
+
+function dataDepthLabel(purchaseCount: number): "wenig Daten" | "solide Historie" | "starke Historie" {
+  if (purchaseCount >= 5) return "starke Historie";
+  if (purchaseCount >= 3) return "solide Historie";
+  return "wenig Daten";
 }
 
 function createPrediction(
@@ -64,6 +81,7 @@ function createPrediction(
   const daysUntilNext = daysFromToday(estimatedNextPurchaseDate);
   const urgency = classifyUrgency(daysUntilNext);
   const confidence = classifyConfidence(sorted.length, intervals);
+  const variability = intervalVariability(intervals);
   const suppressed = settings.suppressedKeys.includes(key);
   const daysSinceLast = Math.max(0, daysBetween(lastPurchaseDate, new Date().toISOString().slice(0, 10)));
 
@@ -81,6 +99,12 @@ function createPrediction(
     daysUntilNext,
     urgency,
     confidence,
+    signals: {
+      intervalStability: intervalStabilityLabel(variability),
+      dataDepth: dataDepthLabel(sorted.length),
+      feedbackSignal: "kein Feedback",
+      mlReadiness: sorted.length >= 4 && variability <= 0.45 ? "ML-ready" : "regelbasiert"
+    },
     suppressed,
     explanation: `Basierend auf deinen bisherigen Einkäufen kaufst du ${displayName} ungefähr alle ${medianIntervalDays} Tage. Der letzte Kauf war vor ${daysSinceLast} Tagen; damit ist diese Kategorie ${timingCopy(daysUntilNext)}.`
   };
@@ -101,8 +125,9 @@ export function applyFeedbackToPrediction(
   const related = feedback.filter((record) => record.predictionKey === prediction.key);
   const notRelevant = related.some((record) => record.action === "not_relevant");
   const stillEnoughCount = related.filter((record) => record.action === "still_enough").length;
-  if (notRelevant) return { ...prediction, suppressed: true };
-  if (stillEnoughCount === 0) return prediction;
+  const feedbackSignal = related.length > 0 ? "Feedback berücksichtigt" : prediction.signals.feedbackSignal;
+  if (notRelevant) return { ...prediction, suppressed: true, signals: { ...prediction.signals, feedbackSignal } };
+  if (stillEnoughCount === 0) return { ...prediction, signals: { ...prediction.signals, feedbackSignal } };
 
   const postponedDate = addDays(
     prediction.estimatedNextPurchaseDate,
@@ -114,6 +139,7 @@ export function applyFeedbackToPrediction(
     estimatedNextPurchaseDate: postponedDate,
     daysUntilNext,
     urgency: classifyUrgency(daysUntilNext),
+    signals: { ...prediction.signals, feedbackSignal },
     explanation: `${prediction.explanation} Dein Feedback „Noch genug” wurde berücksichtigt; der nächste Hinweis wird bewusst etwas später angezeigt.`
   };
 }

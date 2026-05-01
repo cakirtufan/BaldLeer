@@ -30,6 +30,13 @@ export type PredictionLevel = "category" | "product";
 export type Urgency = "not_urgent" | "soon" | "probably_needed_now" | "overdue";
 export type Confidence = "low" | "medium" | "high";
 
+export type PredictionSignals = {
+  intervalStability: "stabil" | "mittel" | "unregelmäßig";
+  dataDepth: "wenig Daten" | "solide Historie" | "starke Historie";
+  feedbackSignal: "kein Feedback" | "Feedback berücksichtigt";
+  mlReadiness: "regelbasiert" | "ML-ready";
+};
+
 export type RefillPrediction = {
   id: string;
   predictionLevel: PredictionLevel;
@@ -44,6 +51,7 @@ export type RefillPrediction = {
   daysUntilNext: number;
   urgency: Urgency;
   confidence: Confidence;
+  signals: PredictionSignals;
   explanation: string;
   suppressed: boolean;
 };

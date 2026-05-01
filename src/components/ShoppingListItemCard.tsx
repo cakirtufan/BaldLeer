@@ -19,7 +19,7 @@ export function ShoppingListItemCard({
     <View style={styles.card}>
       <View style={styles.textBlock}>
         <Text style={styles.title}>{item.displayName}</Text>
-        <Text style={styles.meta}>{categoryLabel(item.category)} · aus Bald leer?</Text>
+        <Text style={styles.meta}>{categoryLabel(item.category)} · aus BaldLeer</Text>
       </View>
       <View style={styles.actions}>
         {type === "list" && onBought ? (

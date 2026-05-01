@@ -1,10 +1,10 @@
-# Bald leer? / Smart Refill
+# BaldLeer / Smart Refill
 
 Pitchable mobile MVP prototype for a German retail drugstore context. The prototype shows how an existing retailer app could turn **Meine Einkäufe** and digital eBon history into a useful, opt-in refill assistant.
 
 ## Product Idea
 
-`Bald leer?` transforms purchase history from a passive archive into an active service moment. The user does not scan receipts and does not enter products manually. Instead, the feature assumes that the retailer already has digital receipts and purchase history in the customer profile.
+`BaldLeer` transforms purchase history from a passive archive into an active service moment. The user does not scan receipts and does not enter products manually. Instead, the feature assumes that the retailer already has digital receipts and purchase history in the customer profile.
 
 The MVP analyzes recurring purchases stored in a simulated retailer profile and suggests products or categories that may soon be needed again. It deliberately avoids receipt scanning, OCR, scraping, login, cloud sync, real payments, and real dm/Rossmann integrations.
 
@@ -27,7 +27,7 @@ For a retailer, the feature makes existing first-party purchase history more use
 
 ## Pitch Narrative
 
-Today, **Meine Einkäufe** is mostly a record of what already happened. `Bald leer?` makes that same history actionable:
+Today, **Meine Einkäufe** is mostly a record of what already happened. `BaldLeer` makes that same history actionable:
 
 1. The app recognizes recurring household categories from eBon history.
 2. It estimates usual refill intervals with robust median-based logic.
@@ -82,6 +82,11 @@ It:
 - estimates next purchase as `last purchase + median interval`
 - classifies urgency from days until estimated next purchase
 - classifies confidence from purchase count and interval variability
+- exposes explainable prediction signals for the UI:
+  - interval stability
+  - data depth
+  - feedback signal
+  - ML readiness
 
 Urgency labels:
 
@@ -105,6 +110,43 @@ Feedback is stored locally and adapts future suggestions:
 - `Noch genug` postpones the estimated next purchase date
 - `Schon gekauft` creates a new purchase entry for today
 - `Nicht relevant` suppresses future suggestions for that category/product
+
+## ML-Ready Direction
+
+The current MVP intentionally uses an explainable predictor instead of a black-box model. This is the right first step for a retail partner pitch because every suggestion can be explained to the user:
+
+- usual purchase interval
+- last purchase date
+- interval stability
+- confidence level
+- feedback already considered
+
+With real retailer data, this can evolve into a small prediction service. A practical supervised model would predict:
+
+> probability that a category or product will be bought again in the next 7 or 14 days
+
+Candidate model features:
+
+- days since last purchase
+- median and average refill interval
+- interval variability
+- purchase count over 3, 6, and 12 months
+- household or segment proxy, if explicitly available
+- package size and quantity
+- product category
+- weekday, month, and seasonal effects
+- coupon or promotion exposure
+- user feedback such as “Noch genug” or “Nicht relevant”
+
+Recommended production approach:
+
+1. Start with the explainable rule-based predictor.
+2. Log opt-in feedback and suggestion outcomes.
+3. Train an offline model on historical eBon data.
+4. Use the model only as a scoring layer.
+5. Keep the user-facing explanation based on transparent signals.
+
+This keeps the feature credible for compliance, product, and data-science stakeholders.
 
 ## Demo Profiles
 

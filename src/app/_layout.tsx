@@ -21,7 +21,7 @@ export default function RootLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: "Bald leer?",
+            title: "BaldLeer",
             tabBarLabel: "Start",
             tabBarIcon: ({ color, size }) => <Ionicons name="sparkles-outline" color={color} size={size} />
           }}
@@ -29,7 +29,7 @@ export default function RootLayout() {
         <Tabs.Screen
           name="predictions"
           options={{
-            title: "Bald leer?",
+            title: "BaldLeer",
             tabBarLabel: "Vorschläge",
             tabBarIcon: ({ color, size }) => <Ionicons name="refresh-circle-outline" color={color} size={size} />
           }}

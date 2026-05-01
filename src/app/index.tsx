@@ -19,7 +19,7 @@ export default function DashboardScreen() {
         <View style={styles.heroTop}>
           <View>
             <Text style={styles.kicker}>Smart Refill im Händlerprofil</Text>
-            <Text style={styles.title}>Bald leer?</Text>
+            <Text style={styles.title}>BaldLeer</Text>
           </View>
           <View style={styles.profilePill}>
             <Text style={styles.profilePillText}>Demo</Text>
@@ -93,6 +93,15 @@ export default function DashboardScreen() {
           dem Gerät.
         </Text>
       </View>
+
+      <View style={styles.intelligenceCard}>
+        <Text style={styles.intelligenceKicker}>ML-ready Architektur</Text>
+        <Text style={styles.intelligenceTitle}>Erklärbar zuerst, lernfähig danach</Text>
+        <Text style={styles.intelligenceText}>
+          Der MVP nutzt transparente Regeln wie Median-Intervall, Stabilität und Feedback-Signale. Mit echter
+          Händlerhistorie kann daraus später ein kleines Scoring-Modell werden, ohne die Nutzererklärung zu verlieren.
+        </Text>
+      </View>
     </ScrollView>
   );
 }
@@ -144,6 +153,17 @@ const styles = StyleSheet.create({
   sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "900" },
   sectionHint: { color: colors.textMuted, marginTop: 3, fontSize: 13 },
   learned: { color: colors.textMuted, lineHeight: 21 },
+  intelligenceCard: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: spacing.lg,
+    gap: spacing.sm
+  },
+  intelligenceKicker: { color: colors.primary, fontSize: 12, fontWeight: "900", textTransform: "uppercase" },
+  intelligenceTitle: { color: colors.text, fontSize: 18, fontWeight: "900" },
+  intelligenceText: { color: colors.textMuted, lineHeight: 21 },
   linkButton: { backgroundColor: colors.surface, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 9 },
   linkButtonText: { color: colors.primaryDark, fontWeight: "900" }
 });

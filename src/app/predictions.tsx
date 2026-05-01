@@ -10,7 +10,7 @@ export default function PredictionsScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Bald leer?</Text>
+      <Text style={styles.title}>BaldLeer</Text>
       <Text style={styles.text}>
         Diese Vorschläge entstehen aus wiederkehrenden Kategorien und Produkten in der digitalen Einkaufshistorie.
       </Text>

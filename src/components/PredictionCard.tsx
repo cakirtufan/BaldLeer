@@ -36,6 +36,16 @@ export function PredictionCard({ prediction, compact, onAction }: Props) {
 
       <Text style={styles.explanation}>{prediction.explanation}</Text>
 
+      <View style={styles.signalPanel}>
+        <Text style={styles.signalTitle}>Prediction Intelligence</Text>
+        <View style={styles.signalGrid}>
+          <Text style={styles.signalChip}>Historie: {prediction.signals.dataDepth}</Text>
+          <Text style={styles.signalChip}>Intervall: {prediction.signals.intervalStability}</Text>
+          <Text style={styles.signalChip}>{prediction.signals.feedbackSignal}</Text>
+          <Text style={styles.signalChip}>{prediction.signals.mlReadiness}</Text>
+        </View>
+      </View>
+
       <View style={styles.summaryStrip}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Intervall</Text>
@@ -108,6 +118,25 @@ const styles = StyleSheet.create({
   badgeRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
   meta: { color: colors.textMuted, fontSize: 12 },
   explanation: { color: colors.text, lineHeight: 20 },
+  signalPanel: {
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: spacing.md,
+    gap: spacing.sm
+  },
+  signalTitle: { color: colors.primaryDark, fontSize: 12, fontWeight: "900", textTransform: "uppercase" },
+  signalGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  signalChip: {
+    backgroundColor: colors.surfaceMuted,
+    color: colors.textMuted,
+    borderRadius: 999,
+    overflow: "hidden",
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    fontSize: 11,
+    fontWeight: "800"
+  },
   summaryStrip: {
     backgroundColor: colors.surfaceMuted,
     borderRadius: 12,
