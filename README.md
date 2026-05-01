@@ -1,10 +1,12 @@
 # Bald leer? / Smart Refill
 
-Mobile MVP prototype for a German retail drugstore context. The prototype shows how an existing retailer app could turn **Meine Einkäufe** and digital eBon history into soft, predictive refill suggestions.
+Pitchable mobile MVP prototype for a German retail drugstore context. The prototype shows how an existing retailer app could turn **Meine Einkäufe** and digital eBon history into a useful, opt-in refill assistant.
 
 ## Product Idea
 
-`Bald leer?` analyzes recurring purchases already stored in a simulated retailer profile and suggests products or categories that may soon be needed again. It deliberately avoids receipt scanning, OCR, scraping, login, cloud sync, real payments, and real dm/Rossmann integrations.
+`Bald leer?` transforms purchase history from a passive archive into an active service moment. The user does not scan receipts and does not enter products manually. Instead, the feature assumes that the retailer already has digital receipts and purchase history in the customer profile.
+
+The MVP analyzes recurring purchases stored in a simulated retailer profile and suggests products or categories that may soon be needed again. It deliberately avoids receipt scanning, OCR, scraping, login, cloud sync, real payments, and real dm/Rossmann integrations.
 
 Main UX language is German and uses soft wording such as:
 
@@ -15,12 +17,25 @@ Main UX language is German and uses soft wording such as:
 
 ## Business Value
 
-For a retailer, the feature can make existing digital receipt history more useful:
+For a retailer, the feature makes existing first-party purchase history more useful without creating a separate shopping-list product:
 
-- turns passive purchase archives into an active refill assistant
-- increases convenience and repeat purchase intent
-- creates a path to optional cart, coupon, and reminder integrations
-- keeps the experience inside the retailer app rather than a generic shopping list
+- increases the perceived value of digital receipts and the customer account
+- creates a practical reason to revisit the retailer app before the next store visit
+- supports repeat purchase behavior with helpful, soft suggestions
+- can connect later to coupons, online cart, reminders, and loyalty mechanics
+- keeps the experience inside the retailer app rather than a generic standalone list
+
+## Pitch Narrative
+
+Today, **Meine Einkäufe** is mostly a record of what already happened. `Bald leer?` makes that same history actionable:
+
+1. The app recognizes recurring household categories from eBon history.
+2. It estimates usual refill intervals with robust median-based logic.
+3. It shows soft suggestions such as “könnte bald wieder nötig sein”.
+4. The user can add an item to a shopping list or simulated cart.
+5. Feedback like “Noch genug” or “Nicht relevant” adjusts future suggestions.
+
+The prototype is intentionally framed as a feature module that could live inside an existing German drugstore app.
 
 ## Tech Stack
 
@@ -40,6 +55,12 @@ npm run start
 ```
 
 Then open the Expo app in a simulator, browser, or Expo Go-compatible environment.
+
+For a local web pitch demo:
+
+```bash
+npx expo start --port 8083 --localhost --clear
+```
 
 ## Prediction Logic
 
@@ -95,9 +116,13 @@ The demo screen resets all local data and switches between:
 
 Each profile has a different six-month purchase history and refill pattern.
 
+This is designed for live partner conversations: switching profiles immediately changes the story from baby products to single-household care products or pet-owner refill patterns.
+
 ## Privacy Assumption
 
 This MVP stores all data locally on the device. No data is sent to a server. In a real retailer app, this feature would require transparent communication, explicit opt-in, and clear controls for disabling purchase-history-based predictions.
+
+The prototype includes settings and privacy copy to make the compliance assumption visible: purchase-history-based suggestions should be voluntary, explainable, and easy to turn off.
 
 ## MVP Limitations
 

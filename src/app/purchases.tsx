@@ -26,10 +26,14 @@ export default function PurchasesScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Meine Einkäufe</Text>
-      <Text style={styles.text}>
-        Digitale Kassenbons aus dem bestehenden Händlerprofil. Keine manuelle Eingabe, kein OCR, keine Kamera.
-      </Text>
+      <View style={styles.hero}>
+        <Text style={styles.kicker}>Datenbasis</Text>
+        <Text style={styles.title}>Meine Einkäufe</Text>
+        <Text style={styles.text}>
+          Simulierte digitale Kassenbons aus einem bestehenden Händlerprofil. Diese Ansicht zeigt bewusst keine
+          manuelle Erfassung, kein OCR und keine Kamera.
+        </Text>
+      </View>
       <TextInput
         value={search}
         onChangeText={setSearch}
@@ -53,8 +57,11 @@ export default function PurchasesScreen() {
       </ScrollView>
       <View style={styles.infoBox}>
         <Text style={styles.infoTitle}>Digitale Kassenbons</Text>
-        <Text style={styles.infoText}>Sortiert nach Datum. Genutzt für lokale Nachkauf-Vorhersagen.</Text>
+        <Text style={styles.infoText}>
+          Sortiert nach Datum. Kategorien und wiederkehrende Produktnamen werden lokal für Nachkauf-Vorschläge genutzt.
+        </Text>
       </View>
+      <Text style={styles.resultCount}>{purchases.length} eBon-Positionen gefunden</Text>
       {purchases.map((purchase) => (
         <PurchaseCard key={purchase.id} purchase={purchase} />
       ))}
@@ -65,8 +72,16 @@ export default function PurchasesScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, gap: spacing.lg },
+  hero: {
+    backgroundColor: colors.surface,
+    borderRadius: 18,
+    padding: spacing.xl,
+    borderColor: colors.border,
+    borderWidth: 1
+  },
+  kicker: { color: colors.primary, fontWeight: "900", fontSize: 12, textTransform: "uppercase" },
   title: { color: colors.text, fontSize: 28, fontWeight: "900" },
-  text: { color: colors.textMuted, lineHeight: 21 },
+  text: { color: colors.textMuted, lineHeight: 21, marginTop: spacing.sm },
   input: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
@@ -88,5 +103,6 @@ const styles = StyleSheet.create({
   activeChip: { backgroundColor: colors.primary, color: "#fff", fontWeight: "800" },
   infoBox: { backgroundColor: colors.surfaceMuted, borderRadius: 14, padding: spacing.lg },
   infoTitle: { color: colors.text, fontWeight: "800" },
-  infoText: { color: colors.textMuted, marginTop: 4 }
+  infoText: { color: colors.textMuted, marginTop: 4, lineHeight: 20 },
+  resultCount: { color: colors.textMuted, fontSize: 13, fontWeight: "800" }
 });

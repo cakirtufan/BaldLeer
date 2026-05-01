@@ -14,6 +14,11 @@ type Props = {
 };
 
 export function PredictionCard({ prediction, compact, onAction }: Props) {
+  const timing =
+    prediction.daysUntilNext >= 0
+      ? `${prediction.daysUntilNext} Tage`
+      : `${Math.abs(prediction.daysUntilNext)} Tage über Plan`;
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -30,11 +35,27 @@ export function PredictionCard({ prediction, compact, onAction }: Props) {
       </View>
 
       <Text style={styles.explanation}>{prediction.explanation}</Text>
+
+      <View style={styles.summaryStrip}>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Intervall</Text>
+          <Text style={styles.summaryValue}>{prediction.medianIntervalDays} Tage</Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Nächster Bedarf</Text>
+          <Text style={styles.summaryValue}>{formatGermanDate(prediction.estimatedNextPurchaseDate)}</Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Status</Text>
+          <Text style={styles.summaryValue}>{timing}</Text>
+        </View>
+      </View>
+
       {!compact ? (
         <View style={styles.details}>
           <Text style={styles.detail}>Letzter Kauf: {formatGermanDate(prediction.lastPurchaseDate)}</Text>
           <Text style={styles.detail}>Üblicher Abstand: ca. {prediction.medianIntervalDays} Tage</Text>
-          <Text style={styles.detail}>Geschätzter Bedarf: {formatGermanDate(prediction.estimatedNextPurchaseDate)}</Text>
+          <Text style={styles.detail}>Geschätzter nächster Bedarf: {formatGermanDate(prediction.estimatedNextPurchaseDate)}</Text>
           <Text style={styles.detail}>
             {prediction.daysUntilNext >= 0
               ? `Noch ${prediction.daysUntilNext} Tage`
@@ -73,7 +94,12 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderColor: colors.border,
     borderWidth: 1,
-    gap: spacing.md
+    gap: spacing.md,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1
   },
   header: { flexDirection: "row", justifyContent: "space-between", gap: spacing.md },
   titleBlock: { flex: 1 },
@@ -82,6 +108,15 @@ const styles = StyleSheet.create({
   badgeRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
   meta: { color: colors.textMuted, fontSize: 12 },
   explanation: { color: colors.text, lineHeight: 20 },
+  summaryStrip: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 12,
+    padding: spacing.md,
+    gap: spacing.sm
+  },
+  summaryItem: { flexDirection: "row", justifyContent: "space-between", gap: spacing.md },
+  summaryLabel: { color: colors.textMuted, fontSize: 12, fontWeight: "700" },
+  summaryValue: { color: colors.text, fontSize: 12, fontWeight: "900", flexShrink: 1, textAlign: "right" },
   details: { gap: 4 },
   detail: { color: colors.textMuted, fontSize: 13 },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },

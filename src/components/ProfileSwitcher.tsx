@@ -21,8 +21,15 @@ export function ProfileSwitcher({
             onPress={() => onChange(profile.id)}
             style={[styles.option, active ? styles.active : null]}
           >
-            <Text style={[styles.name, active ? styles.activeText : null]}>{profile.name}</Text>
+            <View style={styles.optionTop}>
+              <Text style={[styles.name, active ? styles.activeText : null]}>{profile.name}</Text>
+              <Text style={[styles.status, active ? styles.activeStatus : null]}>{active ? "Aktiv" : "Auswählen"}</Text>
+            </View>
             <Text style={[styles.description, active ? styles.activeDescription : null]}>{profile.description}</Text>
+            <View style={styles.useCaseRow}>
+              <Text style={[styles.useCase, active ? styles.activeUseCase : null]}>6 Monate eBon-Daten</Text>
+              <Text style={[styles.useCase, active ? styles.activeUseCase : null]}>andere Nachkaufmuster</Text>
+            </View>
           </Pressable>
         );
       })}
@@ -36,12 +43,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 14,
-    padding: spacing.lg
+    borderRadius: 16,
+    padding: spacing.lg,
+    gap: spacing.sm
   },
   active: { backgroundColor: colors.primary, borderColor: colors.primary },
+  optionTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.md },
   name: { color: colors.text, fontWeight: "800", fontSize: 16 },
   activeText: { color: "#fff" },
-  description: { color: colors.textMuted, marginTop: 4, lineHeight: 18 },
-  activeDescription: { color: "#eef7f3" }
+  status: { color: colors.primaryDark, fontSize: 12, fontWeight: "900" },
+  activeStatus: { color: "#fff" },
+  description: { color: colors.textMuted, lineHeight: 18 },
+  activeDescription: { color: "#eef7f3" },
+  useCaseRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  useCase: {
+    backgroundColor: colors.surfaceMuted,
+    color: colors.textMuted,
+    borderRadius: 999,
+    overflow: "hidden",
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    fontSize: 11,
+    fontWeight: "800"
+  },
+  activeUseCase: { backgroundColor: "#eef7f3", color: colors.primaryDark }
 });

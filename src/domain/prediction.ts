@@ -29,6 +29,13 @@ export function classifyUrgency(daysUntilNext: number): Urgency {
   return "overdue";
 }
 
+function timingCopy(daysUntilNext: number): string {
+  if (daysUntilNext > 10) return `voraussichtlich in ${daysUntilNext} Tagen wieder relevant`;
+  if (daysUntilNext >= 1) return `in den nächsten ${daysUntilNext} Tagen wahrscheinlich wieder relevant`;
+  if (daysUntilNext === 0) return "wahrscheinlich ab heute wieder relevant";
+  return `seit ${Math.abs(daysUntilNext)} Tagen wahrscheinlich wieder relevant`;
+}
+
 export function classifyConfidence(purchaseCount: number, intervals: number[]): Confidence {
   if (purchaseCount <= 2) return "low";
   const avg = average(intervals);
@@ -75,7 +82,7 @@ function createPrediction(
     urgency,
     confidence,
     suppressed,
-    explanation: `Du kaufst ${displayName} ungefähr alle ${medianIntervalDays} Tage. Der letzte Kauf war vor ${daysSinceLast} Tagen. Deshalb könnte es bald wieder nötig sein.`
+    explanation: `Basierend auf deinen bisherigen Einkäufen kaufst du ${displayName} ungefähr alle ${medianIntervalDays} Tage. Der letzte Kauf war vor ${daysSinceLast} Tagen; damit ist diese Kategorie ${timingCopy(daysUntilNext)}.`
   };
 }
 
@@ -107,7 +114,7 @@ export function applyFeedbackToPrediction(
     estimatedNextPurchaseDate: postponedDate,
     daysUntilNext,
     urgency: classifyUrgency(daysUntilNext),
-    explanation: `${prediction.explanation} Du hast angegeben, dass noch genug da ist. Der Vorschlag wurde etwas nach hinten verschoben.`
+    explanation: `${prediction.explanation} Dein Feedback „Noch genug” wurde berücksichtigt; der nächste Hinweis wird bewusst etwas später angezeigt.`
   };
 }
 

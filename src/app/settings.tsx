@@ -14,7 +14,13 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Einstellungen</Text>
+      <View style={styles.hero}>
+        <Text style={styles.kicker}>Kontrolle & Transparenz</Text>
+        <Text style={styles.title}>Einstellungen</Text>
+        <Text style={styles.intro}>
+          Für eine echte Händler-App wäre diese Funktion freiwillig aktivierbar und jederzeit steuerbar.
+        </Text>
+      </View>
       <SettingRow
         label="Nachkauf-Vorschläge aktivieren"
         value={settings.refillSuggestionsEnabled}
@@ -62,7 +68,16 @@ function SettingRow({ label, value, onValueChange }: { label: string; value: boo
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, gap: spacing.lg },
+  hero: {
+    backgroundColor: colors.surface,
+    borderRadius: 18,
+    padding: spacing.xl,
+    borderColor: colors.border,
+    borderWidth: 1
+  },
+  kicker: { color: colors.primary, fontWeight: "900", fontSize: 12, textTransform: "uppercase" },
   title: { color: colors.text, fontSize: 28, fontWeight: "900" },
+  intro: { color: colors.textMuted, lineHeight: 21, marginTop: spacing.sm },
   row: {
     backgroundColor: colors.surface,
     borderRadius: 14,

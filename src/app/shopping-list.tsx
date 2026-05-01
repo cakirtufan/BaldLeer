@@ -13,7 +13,7 @@ export default function ShoppingListScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Einkaufsliste</Text>
-          <Text style={styles.text}>Aus Nachkauf-Vorschlägen hinzugefügt.</Text>
+          <Text style={styles.text}>Aus Nachkauf-Vorschlägen vorbereitet, ohne echten Checkout.</Text>
         </View>
         <Pressable style={styles.clearButton} onPress={clearLists}>
           <Text style={styles.clearText}>Liste leeren</Text>
@@ -22,7 +22,10 @@ export default function ShoppingListScreen() {
 
       <Text style={styles.sectionTitle}>Einkaufsliste</Text>
       {state.shoppingList.length === 0 ? (
-        <EmptyState title="Noch keine Artikel" text="Füge Produkte aus Bald leer? zur Einkaufsliste hinzu." />
+        <EmptyState
+          title="Noch keine Artikel"
+          text="Wenn ein Vorschlag relevant wirkt, kann er hier für den nächsten Filial- oder Online-Einkauf gemerkt werden."
+        />
       ) : (
         state.shoppingList.map((item) => (
           <ShoppingListItemCard
@@ -37,7 +40,10 @@ export default function ShoppingListScreen() {
 
       <Text style={styles.sectionTitle}>Im Warenkorb</Text>
       {state.cart.length === 0 ? (
-        <EmptyState title="Warenkorb leer" text="Der Warenkorb ist nur eine Simulation für den Pitch-Prototyp." />
+        <EmptyState
+          title="Warenkorb leer"
+          text="Der Warenkorb simuliert, wie ein Händler die Vorschläge später in einen echten Online-Warenkorb überführen könnte."
+        />
       ) : (
         state.cart.map((item) => (
           <ShoppingListItemCard key={item.id} item={item} type="cart" onRemove={() => removeCartItem(item.id)} />
