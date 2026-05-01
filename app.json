@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Bald leer?",
+    "slug": "baldleer-smart-refill",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "baldleer",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "experiments": {
+      "typedRoutes": true
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      }
+    }
+  }
+}
