@@ -55,3 +55,4 @@ Clone the repository:
 ```bash
 git clone https://github.com/cakirtufan/BaldLeer.git
 cd BaldLeer
+npx expo start --port 8083 --localhost --clear
