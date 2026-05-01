@@ -46,6 +46,28 @@ The script writes a metrics JSON to:
 data-science/outputs/personal_refill_metrics.json
 ```
 
+## Run the Local Rossmann Receipt Benchmark
+
+If a local `Rossmann/` folder with eBon PDFs exists, extract product rows and evaluate the last three months as a holdout:
+
+```bash
+python data-science/extract_rossmann_receipts.py
+python data-science/train_personal_refill_model.py --history data-science/data/rossmann_history_9m.csv --future data-science/data/rossmann_future_3m.csv --output data-science/outputs/rossmann_refill_metrics.json --user-label ROSSMANN_RECEIPT_USER --exclude-categories other --framing "train on extracted Rossmann eBon history before the last 3 months, evaluate on the last 3 months; broad other category excluded"
+```
+
+The extractor reads the PDF text layer. It does not run OCR and does not copy masked customer/card/payment details into the derived CSV.
+
+Current local result:
+
+| Approach | ROC AUC | Avg precision | F1 |
+| --- | ---: | ---: | ---: |
+| Median interval baseline | 0.548 | 0.183 | 0.308 |
+| Explainable hybrid rules | 0.538 | 0.181 | 0.308 |
+| Personal logistic ML | 0.690 | 0.326 | 0.211 |
+| Median + ML ensemble | 0.687 | 0.336 | 0.211 |
+
+This says ML is promising as a ranking layer on the receipt data, but the thresholding and dataset size are not good enough to replace the explainable baseline.
+
 ## Run with Real Export or UCI-like CSV
 
 The training script expects columns equivalent to:

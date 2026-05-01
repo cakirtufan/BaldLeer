@@ -203,10 +203,20 @@ def main() -> None:
     parser.add_argument("--horizon-days", type=int, default=14)
     parser.add_argument("--step-days", type=int, default=7)
     parser.add_argument("--output", default="data-science/outputs/personal_refill_metrics.json")
+    parser.add_argument("--user-label", default="PERSONA_FAMILY_001")
+    parser.add_argument("--exclude-categories", default="")
+    parser.add_argument(
+        "--framing",
+        default="train on 12 months individual history, evaluate on next 3 months rolling future",
+    )
     args = parser.parse_args()
 
     history = load_transactions(args.history)
     future = load_transactions(args.future)
+    excluded_categories = {category.strip() for category in args.exclude_categories.split(",") if category.strip()}
+    if excluded_categories:
+        history = history[~history["category"].isin(excluded_categories)].copy()
+        future = future[~future["category"].isin(excluded_categories)].copy()
     full = pd.concat([history, future], ignore_index=True).sort_values("invoice_date")
     anchor = history["invoice_date"].max().normalize()
 
@@ -239,14 +249,15 @@ def main() -> None:
     ensemble_threshold = best_f1_threshold(train["label"].to_numpy(), train_ensemble)
 
     result = {
-        "user": "PERSONA_FAMILY_001",
-        "framing": "train on 12 months individual history, evaluate on next 3 months rolling future",
+        "user": args.user_label,
+        "framing": args.framing,
         "history_rows": int(len(history)),
         "future_rows": int(len(future)),
         "train_examples": int(len(train)),
         "test_examples": int(len(test)),
         "test_positive_rate": float(test["label"].mean()),
         "horizon_days": args.horizon_days,
+        "excluded_categories": sorted(excluded_categories),
         "baseline_median_interval": metrics(test["label"].to_numpy(), baseline, threshold=baseline_threshold),
         "explainable_hybrid": metrics(test["label"].to_numpy(), hybrid, threshold=hybrid_threshold),
         "personal_logistic_model": metrics(test["label"].to_numpy(), ml_scores, threshold=ml_threshold),
