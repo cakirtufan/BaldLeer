@@ -12,7 +12,7 @@ It explores how an existing retailer app could use digital receipts and purchase
 
 Before going shopping, the user opens the retailer app.
 
-In addition to **Meine Einkäufe**, the app shows a small section called **Bald leer?**.
+In addition to **Meine Einkäufe**, the app shows a small section called **BaldLeer**.
 
 There, the user might see:
 
