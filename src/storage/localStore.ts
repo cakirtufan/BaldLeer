@@ -3,7 +3,7 @@ import { getMockFeedback } from "@/data/mockFeedback";
 import { getMockPurchases } from "@/data/mockPurchases";
 import { AppState, DemoProfileId } from "@/domain/types";
 
-const stateKey = "baldleer.appState.v3";
+const stateKey = "baldleer.appState.v4";
 
 export const defaultSettings = {
   refillSuggestionsEnabled: true,

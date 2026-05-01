@@ -96,7 +96,7 @@ function tierForScore(score: number): RecommendationTier {
 }
 
 function isSeasonalCategory(category: ProductCategory): boolean {
-  return category === "cleaning_spray" || category === "soap";
+  return category === "cleaning_spray" || category === "soap" || category === "suncare" || category === "tea_health";
 }
 
 function isStockupPurchase(purchase: Purchase, usualQuantity: number): boolean {

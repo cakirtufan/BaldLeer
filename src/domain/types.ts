@@ -6,11 +6,19 @@ export type ProductCategory =
   | "toothpaste"
   | "diapers"
   | "baby_wipes"
+  | "baby_food"
+  | "baby_care"
   | "coffee"
   | "pet_food"
   | "kitchen_paper"
   | "soap"
   | "cleaning_spray"
+  | "tea_health"
+  | "personal_care"
+  | "deodorant"
+  | "suncare"
+  | "household"
+  | "snacks"
   | "other";
 
 export type Purchase = {

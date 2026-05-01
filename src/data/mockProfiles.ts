@@ -3,17 +3,17 @@ import { DemoProfile } from "@/domain/types";
 export const mockProfiles: DemoProfile[] = [
   {
     id: "family",
-    name: "Familie mit Kleinkind",
-    description: "Regelmäßige Haushalts- und Babyprodukte mit kurzen Nachkaufzyklen."
+    name: "Kombinierte eBon-Historie",
+    description: "Reale dm- und Rossmann-eBons als realistische Demo-Datenbasis."
   },
   {
     id: "single",
-    name: "Single-Haushalt",
-    description: "Weniger häufige Einkäufe, Kaffee und Pflegeprodukte mit längeren Intervallen."
+    name: "dm eBon-Historie",
+    description: "dm-Einkaeufe mit Baby, Haushalt, Pflege und Vorratskaeufen."
   },
   {
     id: "pet",
-    name: "Haustierbesitzer",
-    description: "Tierfutter, Küchenpapier und Reiniger als wiederkehrende Bedarfe."
+    name: "Rossmann eBon-Historie",
+    description: "Rossmann-Einkaeufe mit Baby, Pflege, Gesundheit und Reinigung."
   }
 ];

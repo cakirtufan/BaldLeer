@@ -21,15 +21,27 @@ const areaFilters: Array<{ id: PurchaseArea; label: string; description: string 
 function matchesArea(purchase: Purchase, area: PurchaseArea): boolean {
   const text = `${purchase.productName} ${purchase.category}`.toLowerCase();
   if (area === "all") return true;
-  if (area === "baby") return purchase.category === "diapers" || purchase.category === "baby_wipes" || text.includes("baby") || text.includes("kinder");
-  if (area === "haushalt") {
-    return ["toilet_paper", "kitchen_paper", "laundry_detergent", "dishwasher_tabs", "cleaning_spray", "soap"].includes(
-      purchase.category
+  if (area === "baby") {
+    return (
+      ["diapers", "baby_wipes", "baby_food", "baby_care"].includes(purchase.category) ||
+      text.includes("baby") ||
+      text.includes("kinder")
     );
+  }
+  if (area === "haushalt") {
+    return [
+      "toilet_paper",
+      "kitchen_paper",
+      "laundry_detergent",
+      "dishwasher_tabs",
+      "cleaning_spray",
+      "soap",
+      "household"
+    ].includes(purchase.category);
   }
   if (area === "pflege") {
     return (
-      ["shampoo", "toothpaste", "soap"].includes(purchase.category) ||
+      ["shampoo", "toothpaste", "soap", "personal_care", "deodorant"].includes(purchase.category) ||
       text.includes("deo") ||
       text.includes("duschgel") ||
       text.includes("handcreme") ||
@@ -37,9 +49,16 @@ function matchesArea(purchase: Purchase, area: PurchaseArea): boolean {
     );
   }
   if (area === "gesundheit") {
-    return text.includes("vitamin") || text.includes("erkält") || text.includes("tee") || text.includes("nasenspray") || text.includes("taschent");
+    return (
+      purchase.category === "tea_health" ||
+      text.includes("vitamin") ||
+      text.includes("erkält") ||
+      text.includes("tee") ||
+      text.includes("nasenspray") ||
+      text.includes("taschent")
+    );
   }
-  if (area === "sommer") return text.includes("sonnen") || text.includes("after sun") || text.includes("lsf");
+  if (area === "sommer") return purchase.category === "suncare" || text.includes("sonnen") || text.includes("after sun") || text.includes("lsf");
   if (area === "vorrat") return Boolean(purchase.isPromo || purchase.isStockup || purchase.discountPercent);
   return true;
 }
