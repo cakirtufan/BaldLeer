@@ -4,7 +4,7 @@ You know that moment when you come back from the drugstore, put the bags on the 
 
 Toilet paper. Detergent. Baby wipes. Toothpaste. Coffee. Pet food. These products are easy to forget, but they are also quite predictable. Most households buy them again and again in a similar rhythm.
 
-`Bald leer?` is a mobile MVP prototype for this situation.
+`BaldLeer` is a mobile MVP prototype for this situation.
 
 It explores how an existing retailer app could use digital receipts and purchase history to suggest products that may soon be needed again. The user does not scan receipts and does not manually track products. The feature works with the purchase history that already exists in the retailer profile, after the user has opted in.
 
