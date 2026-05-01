@@ -27,6 +27,13 @@ python data-science/train_personal_refill_model.py
 
 It creates one user's 12-month purchase history plus a hidden 3-month future and evaluates whether a model trained only on that user's history can predict future refill needs.
 
+Compared approaches:
+
+- median interval baseline
+- explainable hybrid rules
+- personal logistic ML
+- median + ML ensemble
+
 Read the result summary in:
 
 ```text
@@ -36,7 +43,7 @@ data-science/PERSONAL_EXPERIMENT.md
 The script writes a metrics JSON to:
 
 ```text
-data-science/outputs/refill_model_metrics.json
+data-science/outputs/personal_refill_metrics.json
 ```
 
 ## Run with Real Export or UCI-like CSV
@@ -84,7 +91,9 @@ Features:
 Models:
 
 - Baseline: median refill interval
-- ML: random forest classifier
+- Explainable hybrid: median plus stock-up, promo, seasonality, and stability adjustments
+- Personal ML: logistic regression classifier
+- Median + ML ensemble: normalized median score blended with model probability
 
 Metrics:
 

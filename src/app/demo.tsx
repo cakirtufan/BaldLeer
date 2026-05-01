@@ -9,6 +9,12 @@ import { spacing } from "@/theme/spacing";
 export default function DemoScreen() {
   const { state, resetProfile } = useAppState();
   const active = mockProfiles.find((profile) => profile.id === state.activeProfileId);
+  const story =
+    state.activeProfileId === "family"
+      ? "Zeigt Windeln/Feuchttücher als stabile Bedarfe, Waschmittel mit Feedback-Verschiebung und Toilettenpapier als Vorratskauf."
+      : state.activeProfileId === "single"
+        ? "Zeigt Kaffee als Promo-Vorratskauf, Zahnpasta als stabilen Bedarf und Seife als ausgeblendete Kategorie."
+        : "Zeigt Katzenfutter als sehr regelmäßigen Bedarf, Küchenrolle als Begleitkategorie und Reiniger mit Feedback-Verschiebung.";
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -29,7 +35,7 @@ export default function DemoScreen() {
       <View style={styles.activeCard}>
         <Text style={styles.activeLabel}>Aktuelles Szenario</Text>
         <Text style={styles.active}>{active?.name}</Text>
-        <Text style={styles.text}>Ideal, um zu zeigen, wie sich Familien-, Single- und Haustierbedarfe unterscheiden.</Text>
+        <Text style={styles.text}>{story}</Text>
       </View>
     </ScrollView>
   );

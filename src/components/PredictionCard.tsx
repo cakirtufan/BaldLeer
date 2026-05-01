@@ -1,9 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ConfidenceBadge } from "./ConfidenceBadge";
 import { UrgencyBadge } from "./UrgencyBadge";
 import { formatGermanDate } from "@/domain/dateUtils";
 import { categoryLabel } from "@/domain/normalization";
-import { FeedbackAction, RefillPrediction } from "@/domain/types";
+import { FeedbackAction, PredictionReasonCode, RefillPrediction } from "@/domain/types";
 import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/spacing";
 
@@ -13,11 +12,29 @@ type Props = {
   onAction?: (prediction: RefillPrediction, action: FeedbackAction) => void;
 };
 
+const reasonLabels: Record<PredictionReasonCode, string> = {
+  recurring_interval: "wiederkehrender Bedarf",
+  stockup_adjusted: "Vorratskauf berücksichtigt",
+  feedback_postponed: "Feedback eingerechnet",
+  stable_history: "stabile Historie",
+  irregular_history: "unregelmäßig",
+  low_data: "wenig Daten",
+  urgent_timing: "zeitlich relevant",
+  seasonal_relevance: "saisonaler Kontext"
+};
+
+const tierLabels = {
+  high: "Hohe Priorität",
+  medium: "Mittlere Priorität",
+  low: "Beobachten"
+} as const;
+
 export function PredictionCard({ prediction, compact, onAction }: Props) {
   const timing =
     prediction.daysUntilNext >= 0
       ? `${prediction.daysUntilNext} Tage`
       : `${Math.abs(prediction.daysUntilNext)} Tage über Plan`;
+  const visibleReasons = prediction.reasonCodes.slice(0, compact ? 2 : 3);
 
   return (
     <View style={styles.card}>
@@ -29,80 +46,51 @@ export function PredictionCard({ prediction, compact, onAction }: Props) {
         <UrgencyBadge urgency={prediction.urgency} />
       </View>
 
-      <View style={styles.badgeRow}>
-        <ConfidenceBadge confidence={prediction.confidence} />
-        <Text style={styles.meta}>{prediction.purchaseCount} Käufe erkannt</Text>
-      </View>
-
-      <Text style={styles.explanation}>{prediction.explanation}</Text>
-
-      <View style={styles.signalPanel}>
-        <Text style={styles.signalTitle}>Prediction Intelligence</Text>
-        <View style={styles.signalGrid}>
-          <Text style={styles.signalChip}>Historie: {prediction.signals.dataDepth}</Text>
-          <Text style={styles.signalChip}>Intervall: {prediction.signals.intervalStability}</Text>
-          <Text style={[styles.signalChip, prediction.stockupAdjustmentDays > 0 ? styles.stockupChip : null]}>
-            {prediction.signals.stockupSignal}
-          </Text>
-          <Text style={styles.signalChip}>{prediction.signals.feedbackSignal}</Text>
-          <Text style={styles.signalChip}>{prediction.signals.mlReadiness}</Text>
+      <View style={styles.decisionRow}>
+        <View style={styles.decisionItem}>
+          <Text style={styles.decisionLabel}>Nächster Bedarf</Text>
+          <Text style={styles.decisionValue}>{formatGermanDate(prediction.estimatedNextPurchaseDate)}</Text>
+        </View>
+        <View style={styles.decisionItem}>
+          <Text style={styles.decisionLabel}>Status</Text>
+          <Text style={styles.decisionValue}>{timing}</Text>
+        </View>
+        <View style={styles.scoreBox}>
+          <Text style={styles.scoreValue}>{prediction.score}</Text>
+          <Text style={styles.scoreLabel}>{tierLabels[prediction.recommendationTier]}</Text>
         </View>
       </View>
 
-      <View style={styles.summaryStrip}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Intervall</Text>
-          <Text style={styles.summaryValue}>
-            {prediction.adjustedIntervalDays === prediction.medianIntervalDays
-              ? `${prediction.medianIntervalDays} Tage`
-              : `${prediction.adjustedIntervalDays} Tage angepasst`}
-          </Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Nächster Bedarf</Text>
-          <Text style={styles.summaryValue}>{formatGermanDate(prediction.estimatedNextPurchaseDate)}</Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Status</Text>
-          <Text style={styles.summaryValue}>{timing}</Text>
-        </View>
+      <View style={styles.reasonRow}>
+        {visibleReasons.map((code) => (
+          <Text key={code} style={styles.reasonChip}>{reasonLabels[code]}</Text>
+        ))}
+        {prediction.stockupAdjustmentDays > 0 ? <Text style={styles.stockupNote}>+{prediction.stockupAdjustmentDays} Tage wegen Vorrat</Text> : null}
       </View>
 
-      {!compact ? (
-        <View style={styles.details}>
-          <Text style={styles.detail}>Letzter Kauf: {formatGermanDate(prediction.lastPurchaseDate)}</Text>
-          <Text style={styles.detail}>Üblicher Abstand: ca. {prediction.medianIntervalDays} Tage</Text>
-          {prediction.stockupAdjustmentDays > 0 ? (
-            <Text style={styles.detail}>
-              Vorratskauf-Anpassung: +{prediction.stockupAdjustmentDays} Tage bei {prediction.lastQuantity}× Menge
-            </Text>
-          ) : null}
-          <Text style={styles.detail}>Geschätzter nächster Bedarf: {formatGermanDate(prediction.estimatedNextPurchaseDate)}</Text>
-          <Text style={styles.detail}>
-            {prediction.daysUntilNext >= 0
-              ? `Noch ${prediction.daysUntilNext} Tage`
-              : `Seit ${Math.abs(prediction.daysUntilNext)} Tagen wahrscheinlich wieder nötig`}
-          </Text>
-        </View>
-      ) : null}
+      {!compact ? <Text style={styles.microCopy}>Ø alle {prediction.medianIntervalDays} Tage · {prediction.purchaseCount} Käufe · {prediction.signals.dataDepth}</Text> : null}
 
       {onAction ? (
         <View style={styles.actions}>
-          <Pressable style={styles.primaryButton} onPress={() => onAction(prediction, "add_to_list")}>
-            <Text style={styles.primaryButtonText}>Zur Einkaufsliste</Text>
-          </Pressable>
-          <Pressable style={styles.secondaryButton} onPress={() => onAction(prediction, "add_to_cart")}>
-            <Text style={styles.secondaryButtonText}>In den Warenkorb</Text>
-          </Pressable>
-          <Pressable style={styles.textButton} onPress={() => onAction(prediction, "still_enough")}>
-            <Text style={styles.textButtonText}>Noch genug</Text>
-          </Pressable>
-          <Pressable style={styles.textButton} onPress={() => onAction(prediction, "bought_already")}>
-            <Text style={styles.textButtonText}>Schon gekauft</Text>
-          </Pressable>
-          <Pressable style={styles.textButton} onPress={() => onAction(prediction, "not_relevant")}>
-            <Text style={styles.textButtonText}>Nicht relevant</Text>
-          </Pressable>
+          <View style={styles.mainActions}>
+            <Pressable style={styles.primaryButton} onPress={() => onAction(prediction, "add_to_list")}>
+              <Text style={styles.primaryButtonText}>Liste</Text>
+            </Pressable>
+            <Pressable style={styles.secondaryButton} onPress={() => onAction(prediction, "add_to_cart")}>
+              <Text style={styles.secondaryButtonText}>Warenkorb</Text>
+            </Pressable>
+          </View>
+          <View style={styles.feedbackActions}>
+            <Pressable style={styles.textButton} onPress={() => onAction(prediction, "still_enough")}>
+              <Text style={styles.textButtonText}>Noch genug</Text>
+            </Pressable>
+            <Pressable style={styles.textButton} onPress={() => onAction(prediction, "bought_already")}>
+              <Text style={styles.textButtonText}>Schon gekauft</Text>
+            </Pressable>
+            <Pressable style={styles.textButton} onPress={() => onAction(prediction, "not_relevant")}>
+              <Text style={styles.textButtonText}>Nicht relevant</Text>
+            </Pressable>
+          </View>
         </View>
       ) : null}
     </View>
@@ -127,19 +115,22 @@ const styles = StyleSheet.create({
   titleBlock: { flex: 1 },
   category: { color: colors.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase" },
   title: { color: colors.text, fontSize: 18, fontWeight: "800", marginTop: 3 },
-  badgeRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
-  meta: { color: colors.textMuted, fontSize: 12 },
-  explanation: { color: colors.text, lineHeight: 20 },
-  signalPanel: {
-    borderColor: colors.border,
-    borderWidth: 1,
+  decisionRow: { flexDirection: "row", gap: spacing.sm, alignItems: "stretch" },
+  decisionItem: { flex: 1, backgroundColor: colors.surfaceMuted, borderRadius: 12, padding: spacing.md },
+  decisionLabel: { color: colors.textMuted, fontSize: 11, fontWeight: "800", textTransform: "uppercase" },
+  decisionValue: { color: colors.text, fontSize: 14, fontWeight: "900", marginTop: 4 },
+  scoreBox: {
+    width: 74,
+    backgroundColor: colors.primaryDark,
     borderRadius: 12,
-    padding: spacing.md,
-    gap: spacing.sm
+    padding: spacing.sm,
+    alignItems: "center",
+    justifyContent: "center"
   },
-  signalTitle: { color: colors.primaryDark, fontSize: 12, fontWeight: "900", textTransform: "uppercase" },
-  signalGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  signalChip: {
+  scoreValue: { color: "#fff", fontSize: 20, fontWeight: "900" },
+  scoreLabel: { color: "#dfeee8", fontSize: 10, fontWeight: "800", textAlign: "center" },
+  reasonRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  reasonChip: {
     backgroundColor: colors.surfaceMuted,
     color: colors.textMuted,
     borderRadius: 999,
@@ -149,23 +140,15 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800"
   },
-  stockupChip: { backgroundColor: "#f2e6d6", color: colors.accent },
-  summaryStrip: {
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: 12,
-    padding: spacing.md,
-    gap: spacing.sm
-  },
-  summaryItem: { flexDirection: "row", justifyContent: "space-between", gap: spacing.md },
-  summaryLabel: { color: colors.textMuted, fontSize: 12, fontWeight: "700" },
-  summaryValue: { color: colors.text, fontSize: 12, fontWeight: "900", flexShrink: 1, textAlign: "right" },
-  details: { gap: 4 },
-  detail: { color: colors.textMuted, fontSize: 13 },
-  actions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  primaryButton: { backgroundColor: colors.primary, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 },
-  primaryButtonText: { color: "#fff", fontWeight: "800" },
-  secondaryButton: { backgroundColor: colors.surfaceMuted, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 },
-  secondaryButtonText: { color: colors.primaryDark, fontWeight: "800" },
-  textButton: { paddingHorizontal: 8, paddingVertical: 10 },
-  textButtonText: { color: colors.textMuted, fontWeight: "700" }
+  stockupNote: { color: colors.accent, fontSize: 11, fontWeight: "900", paddingVertical: 5 },
+  microCopy: { color: colors.textMuted, fontSize: 12, lineHeight: 18 },
+  actions: { gap: spacing.sm },
+  mainActions: { flexDirection: "row", gap: spacing.sm },
+  feedbackActions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  primaryButton: { flex: 1, backgroundColor: colors.primary, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, alignItems: "center" },
+  primaryButtonText: { color: "#fff", fontWeight: "900" },
+  secondaryButton: { flex: 1, backgroundColor: colors.surfaceMuted, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, alignItems: "center" },
+  secondaryButtonText: { color: colors.primaryDark, fontWeight: "900" },
+  textButton: { paddingHorizontal: 2, paddingVertical: 4 },
+  textButtonText: { color: colors.textMuted, fontWeight: "700", fontSize: 12 }
 });

@@ -6,6 +6,7 @@ import {
   ProductCategory,
   Purchase,
   RefillPrediction,
+  RecommendationTier,
   Urgency,
   UserSettings
 } from "./types";
@@ -63,6 +64,41 @@ function dataDepthLabel(purchaseCount: number): "wenig Daten" | "solide Historie
   return "wenig Daten";
 }
 
+function confidenceWeight(confidence: Confidence): number {
+  if (confidence === "high") return 1;
+  if (confidence === "medium") return 0.78;
+  return 0.48;
+}
+
+function urgencyScore(daysUntilNext: number): number {
+  if (daysUntilNext < -7) return 1;
+  if (daysUntilNext <= 0) return 0.92;
+  if (daysUntilNext <= 10) return 0.74;
+  if (daysUntilNext <= 21) return 0.34;
+  return 0.14;
+}
+
+function urgencyScoreFloor(urgency: Urgency): number {
+  if (urgency === "overdue") return 76;
+  if (urgency === "probably_needed_now") return 68;
+  if (urgency === "soon") return 52;
+  return 0;
+}
+
+function applyUrgencyScoreFloor(score: number, urgency: Urgency): number {
+  return Math.max(score, urgencyScoreFloor(urgency));
+}
+
+function tierForScore(score: number): RecommendationTier {
+  if (score >= 72) return "high";
+  if (score >= 42) return "medium";
+  return "low";
+}
+
+function isSeasonalCategory(category: ProductCategory): boolean {
+  return category === "cleaning_spray" || category === "soap";
+}
+
 function isStockupPurchase(purchase: Purchase, usualQuantity: number): boolean {
   const quantityRatio = usualQuantity > 0 ? purchase.quantity / usualQuantity : purchase.quantity;
   return Boolean(purchase.isStockup || quantityRatio >= 1.75 || (purchase.isPromo && quantityRatio > 1.2));
@@ -101,6 +137,24 @@ function createPrediction(
   const variability = intervalVariability(intervals);
   const suppressed = settings.suppressedKeys.includes(key);
   const daysSinceLast = Math.max(0, daysBetween(lastPurchaseDate, new Date().toISOString().slice(0, 10)));
+  const reasonCodes = [
+    "recurring_interval",
+    stockupAdjustmentDays > 0 ? "stockup_adjusted" : null,
+    confidence !== "low" && variability <= 0.35 ? "stable_history" : null,
+    confidence === "low" && sorted.length <= 2 ? "low_data" : null,
+    variability > 0.45 ? "irregular_history" : null,
+    daysUntilNext <= 10 ? "urgent_timing" : null,
+    isSeasonalCategory(category) ? "seasonal_relevance" : null
+  ].filter((code): code is RefillPrediction["reasonCodes"][number] => Boolean(code));
+  const stockupWeight = stockupAdjustmentDays > 0 && daysUntilNext > 0 ? 0.72 : 1;
+  const rawScore = Math.round(
+    100 *
+      urgencyScore(daysUntilNext) *
+      confidenceWeight(confidence) *
+      stockupWeight *
+      (predictionLevel === "product" ? 0.92 : 1)
+  );
+  const score = applyUrgencyScoreFloor(rawScore, urgency);
 
   return {
     id: `${predictionLevel}:${key}`,
@@ -120,6 +174,9 @@ function createPrediction(
     daysUntilNext,
     urgency,
     confidence,
+    score,
+    recommendationTier: tierForScore(score),
+    reasonCodes,
     signals: {
       intervalStability: intervalStabilityLabel(variability),
       dataDepth: dataDepthLabel(sorted.length),
@@ -144,7 +201,9 @@ export function applyFeedbackToPrediction(
   prediction: RefillPrediction,
   feedback: FeedbackRecord[]
 ): RefillPrediction {
-  const related = feedback.filter((record) => record.predictionKey === prediction.key);
+  const related = feedback.filter(
+    (record) => record.predictionKey === prediction.key || record.predictionKey === `category:${prediction.category}`
+  );
   const notRelevant = related.some((record) => record.action === "not_relevant");
   const stillEnoughCount = related.filter((record) => record.action === "still_enough").length;
   const feedbackSignal = related.length > 0 ? "Feedback berücksichtigt" : prediction.signals.feedbackSignal;
@@ -156,11 +215,16 @@ export function applyFeedbackToPrediction(
     prediction.medianIntervalDays * 0.25 * stillEnoughCount
   );
   const daysUntilNext = daysFromToday(postponedDate);
+  const urgency = classifyUrgency(daysUntilNext);
+  const score = applyUrgencyScoreFloor(Math.round(prediction.score * 0.72), urgency);
   return {
     ...prediction,
     estimatedNextPurchaseDate: postponedDate,
     daysUntilNext,
-    urgency: classifyUrgency(daysUntilNext),
+    urgency,
+    score,
+    recommendationTier: tierForScore(score),
+    reasonCodes: Array.from(new Set([...prediction.reasonCodes, "feedback_postponed"])),
     signals: { ...prediction.signals, feedbackSignal },
     explanation: `${prediction.explanation} Dein Feedback „Noch genug” wurde berücksichtigt; der nächste Hinweis wird bewusst etwas später angezeigt.`
   };
@@ -204,5 +268,5 @@ export function calculateRefillPredictions(
   return [...categoryPredictions, ...productPredictions]
     .map((prediction) => applyFeedbackToPrediction(prediction, feedback))
     .filter((prediction) => !prediction.suppressed)
-    .sort((a, b) => a.daysUntilNext - b.daysUntilNext);
+    .sort((a, b) => b.score - a.score || a.daysUntilNext - b.daysUntilNext);
 }

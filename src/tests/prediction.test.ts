@@ -8,6 +8,8 @@ import {
   median
 } from "@/domain/prediction";
 import { FeedbackRecord, Purchase, UserSettings } from "@/domain/types";
+import { getMockFeedback } from "@/data/mockFeedback";
+import { getMockPurchases } from "@/data/mockPurchases";
 
 const settings: UserSettings = {
   refillSuggestionsEnabled: true,
@@ -90,5 +92,66 @@ describe("prediction logic", () => {
     expect(prediction.stockupAdjustmentDays).toBeGreaterThan(0);
     expect(prediction.adjustedIntervalDays).toBeGreaterThan(prediction.medianIntervalDays);
     expect(prediction.signals.stockupSignal).toBe("Vorratskauf erkannt");
+    expect(prediction.reasonCodes).toContain("stockup_adjusted");
+    expect(prediction.score).toBeGreaterThanOrEqual(0);
+    expect(prediction.score).toBeLessThanOrEqual(100);
+  });
+
+  it("keeps overdue predictions in high priority even with low confidence", () => {
+    const predictions = calculateRefillPredictions([purchase("1", 75), purchase("2", 45)], [], settings);
+    const prediction = predictions.find((item) => item.key === "category:toilet_paper");
+
+    expect(prediction?.urgency).toBe("overdue");
+    expect(prediction?.confidence).toBe("low");
+    expect(prediction?.score).toBeGreaterThanOrEqual(72);
+    expect(prediction?.recommendationTier).toBe("high");
+  });
+
+  it("does not let stock-up damping hide an overdue prediction", () => {
+    const stockup: Purchase = {
+      ...purchase("3", 90),
+      quantity: 2,
+      discountPercent: 20,
+      isPromo: true,
+      isStockup: true
+    };
+    const predictions = calculateRefillPredictions([purchase("1", 170), purchase("2", 130), stockup], [], settings);
+    const prediction = predictions.find((item) => item.key === "category:toilet_paper");
+
+    expect(prediction?.stockupAdjustmentDays).toBeGreaterThan(0);
+    expect(prediction?.urgency).toBe("overdue");
+    expect(prediction?.score).toBeGreaterThanOrEqual(72);
+    expect(prediction?.recommendationTier).toBe("high");
+  });
+
+  it("adds reason codes and a lower score after still enough feedback", () => {
+    const [prediction] = calculateRefillPredictions([purchase("1", 60), purchase("2", 30), purchase("3", 0)], [], settings);
+    const feedback: FeedbackRecord[] = [
+      {
+        id: "fb-2",
+        predictionKey: prediction.key,
+        category: prediction.category,
+        action: "still_enough",
+        date: todayIso()
+      }
+    ];
+    const adjusted = applyFeedbackToPrediction(prediction, feedback);
+    expect(adjusted.reasonCodes).toContain("feedback_postponed");
+    expect(adjusted.score).toBeLessThanOrEqual(prediction.score);
+  });
+
+  it("demo profiles expose storytelling prediction signals", () => {
+    const familyPredictions = calculateRefillPredictions(getMockPurchases("family"), getMockFeedback("family"), settings);
+    const singlePredictions = calculateRefillPredictions(getMockPurchases("single"), getMockFeedback("single"), settings);
+    const petPredictions = calculateRefillPredictions(getMockPurchases("pet"), getMockFeedback("pet"), settings);
+    const allReasonCodes = [...familyPredictions, ...singlePredictions, ...petPredictions].flatMap(
+      (prediction) => prediction.reasonCodes
+    );
+
+    expect(familyPredictions.some((prediction) => prediction.reasonCodes.includes("feedback_postponed"))).toBe(true);
+    expect(singlePredictions.some((prediction) => prediction.category === "soap")).toBe(false);
+    expect(allReasonCodes).toContain("stockup_adjusted");
+    expect(allReasonCodes).toContain("stable_history");
+    expect(petPredictions[0].score).toBeGreaterThan(0);
   });
 });

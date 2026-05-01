@@ -91,6 +91,29 @@ def baseline_scores(examples: pd.DataFrame, horizon_days: int) -> np.ndarray:
     return (horizon_days - estimated_due_in).astype(float).to_numpy()
 
 
+def hybrid_scores(examples: pd.DataFrame, horizon_days: int) -> np.ndarray:
+    usual_quantity = (examples["total_quantity"] / examples["purchase_count"].clip(lower=1)).clip(lower=1)
+    quantity_ratio = examples["last_quantity"] / usual_quantity
+    stockup_extension = examples["median_interval"] * np.maximum(0, quantity_ratio - 1) * 0.8
+    promo_extension = examples["median_interval"] * examples["last_is_promo"] * 0.2
+    adjusted_interval = examples["median_interval"] + stockup_extension + promo_extension
+    estimated_due_in = adjusted_interval - examples["days_since_last"]
+    score = (horizon_days - estimated_due_in).astype(float)
+
+    stable_bonus = np.where(examples["interval_variability"] <= 0.25, 2.0, 0.0)
+    irregular_penalty = np.where(examples["interval_variability"] > 0.45, -3.0, 0.0)
+    seasonal_month = examples["month"].isin([5, 6, 7, 8])
+    suncare = examples["category"].eq("suncare")
+    seasonal_adjustment = np.where(suncare & seasonal_month, 6.0, np.where(suncare, -10.0, 0.0))
+    baby_promo_adjustment = np.where(
+        examples["category"].isin(["diapers", "baby_wipes"]) & (examples["last_discount_percent"] >= 20),
+        -2.0,
+        0.0,
+    )
+
+    return (score + stable_bonus + irregular_penalty + seasonal_adjustment + baby_promo_adjustment).to_numpy()
+
+
 def best_f1_threshold(y_true: np.ndarray, y_score: np.ndarray) -> float:
     candidates = np.linspace(float(np.min(y_score)), float(np.max(y_score)), 101)
     best_threshold = 0.5
@@ -114,6 +137,27 @@ def metrics(y_true: np.ndarray, y_score: np.ndarray, threshold: float) -> dict[s
     }
     result["roc_auc"] = float(roc_auc_score(y_true, y_score)) if len(set(y_true.tolist())) > 1 else 0.0
     return result
+
+
+def minmax_from_train(train_scores: np.ndarray, scores: np.ndarray) -> np.ndarray:
+    minimum = float(np.min(train_scores))
+    maximum = float(np.max(train_scores))
+    if maximum == minimum:
+        return np.zeros_like(scores, dtype=float)
+    return (scores - minimum) / (maximum - minimum)
+
+
+def best_ensemble_weight(y_true: np.ndarray, baseline_score: np.ndarray, ml_score: np.ndarray) -> float:
+    best_weight = 0.0
+    best_score = -1.0
+    for weight in np.linspace(0.0, 1.0, 21):
+        blended = (1 - weight) * baseline_score + weight * ml_score
+        threshold = best_f1_threshold(y_true, blended)
+        score = f1_score(y_true, (blended >= threshold).astype(int), zero_division=0)
+        if score > best_score:
+            best_score = score
+            best_weight = float(weight)
+    return best_weight
 
 
 def train_personal_model(train: pd.DataFrame) -> Pipeline:
@@ -180,10 +224,19 @@ def main() -> None:
     feature_columns = [column for column in train.columns if column not in {"snapshot_date", "label"}]
     train_ml_scores = pipeline.predict_proba(train[feature_columns])[:, 1]
     train_baseline = baseline_scores(train, args.horizon_days)
+    train_hybrid = hybrid_scores(train, args.horizon_days)
     ml_scores = pipeline.predict_proba(test[feature_columns])[:, 1]
     baseline = baseline_scores(test, args.horizon_days)
+    hybrid = hybrid_scores(test, args.horizon_days)
     ml_threshold = best_f1_threshold(train["label"].to_numpy(), train_ml_scores)
     baseline_threshold = best_f1_threshold(train["label"].to_numpy(), train_baseline)
+    hybrid_threshold = best_f1_threshold(train["label"].to_numpy(), train_hybrid)
+    train_baseline_normalized = minmax_from_train(train_baseline, train_baseline)
+    baseline_normalized = minmax_from_train(train_baseline, baseline)
+    ensemble_weight = best_ensemble_weight(train["label"].to_numpy(), train_baseline_normalized, train_ml_scores)
+    train_ensemble = (1 - ensemble_weight) * train_baseline_normalized + ensemble_weight * train_ml_scores
+    ensemble = (1 - ensemble_weight) * baseline_normalized + ensemble_weight * ml_scores
+    ensemble_threshold = best_f1_threshold(train["label"].to_numpy(), train_ensemble)
 
     result = {
         "user": "PERSONA_FAMILY_001",
@@ -195,7 +248,12 @@ def main() -> None:
         "test_positive_rate": float(test["label"].mean()),
         "horizon_days": args.horizon_days,
         "baseline_median_interval": metrics(test["label"].to_numpy(), baseline, threshold=baseline_threshold),
+        "explainable_hybrid": metrics(test["label"].to_numpy(), hybrid, threshold=hybrid_threshold),
         "personal_logistic_model": metrics(test["label"].to_numpy(), ml_scores, threshold=ml_threshold),
+        "median_ml_ensemble": {
+            **metrics(test["label"].to_numpy(), ensemble, threshold=ensemble_threshold),
+            "ml_weight": ensemble_weight,
+        },
         "top_future_predictions": top_predictions(test, ml_scores),
     }
 

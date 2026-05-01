@@ -89,6 +89,7 @@ It:
   - stock-up signal
   - ML readiness
 - adjusts the estimated refill date when the last purchase looks like a promo-driven stock-up
+- calculates a recommendation score and reason codes instead of relying only on due date sorting
 
 Urgency labels:
 
@@ -151,6 +152,41 @@ Recommended production approach:
 
 This keeps the feature credible for compliance, product, and data-science stakeholders.
 
+## Personal Prediction Experiment
+
+The repository includes a small data-science spike that compares the current median baseline against hybrid and ML approaches on a realistic synthetic split:
+
+- one family-with-toddler persona
+- 12 months of messy eBon history for training
+- 3 months of hidden future purchases for evaluation
+- weekly category-level snapshots
+- target: whether a category is bought again in the next 14 days
+
+Run it with:
+
+```bash
+python data-science/generate_personal_timeline.py --seed 7
+python data-science/train_personal_refill_model.py
+```
+
+Current result on the generated split:
+
+| Approach | ROC AUC | Avg precision | Precision | Recall | F1 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Median interval baseline | 0.677 | 0.540 | 0.523 | 0.672 | 0.588 |
+| Explainable hybrid rules | 0.656 | 0.517 | 0.506 | 0.657 | 0.571 |
+| Personal logistic ML | 0.658 | 0.598 | 0.522 | 0.537 | 0.529 |
+| Median + ML ensemble | 0.659 | 0.598 | 0.537 | 0.537 | 0.537 |
+
+Interpretation:
+
+- the median interval baseline remains hard to beat for one user's sparse refill history
+- ML improves ranking quality (`average precision`) but does not yet improve F1 on this single-user setup
+- hand-tuned hybrid rules can make the app more explainable, but they should be validated because extra adjustments can also hurt
+- the most credible next step is not to replace the app logic with ML, but to use ML as a ranking signal once real opt-in feedback data exists
+
+The detailed output is written to `data-science/outputs/personal_refill_metrics.json`.
+
 ## Stock-Up Aware Refill Logic
 
 BaldLeer distinguishes between normal purchases and likely stock-up purchases. This matters because a promotion can distort purchase frequency:
@@ -173,6 +209,30 @@ If the last purchase is likely a stock-up, the estimated next purchase date is p
 
 This keeps the demo explainable while reflecting the same behavior that a future ML model should learn from real eBon data.
 
+## Scoring and Reason Codes
+
+BaldLeer does not try to perfectly optimize every suggestion. It uses a transparent scoring layer so the product keeps room for retailer-specific tuning.
+
+The score combines:
+
+- urgency timing
+- confidence
+- stock-up adjustment
+- category-level vs product-level prediction
+
+Each prediction also carries reason codes:
+
+- `recurring_interval`
+- `stockup_adjusted`
+- `feedback_postponed`
+- `stable_history`
+- `irregular_history`
+- `low_data`
+- `urgent_timing`
+- `seasonal_relevance`
+
+The UI turns these into user-facing explanations such as “wiederkehrender Bedarf”, “Vorratskauf berücksichtigt”, or “stabile Historie”. In a later pilot, an ML probability can become another scoring input without removing the explainable reason codes.
+
 ## Demo Profiles
 
 The demo screen resets all local data and switches between:
@@ -184,6 +244,16 @@ The demo screen resets all local data and switches between:
 Each profile has a different six-month purchase history and refill pattern.
 
 This is designed for live partner conversations: switching profiles immediately changes the story from baby products to single-household care products or pet-owner refill patterns.
+
+The demo data is intentionally story-driven:
+
+- family profile shows stable baby needs, stock-up adjusted paper goods, and feedback-postponed detergent
+- single profile shows coffee stock-up, product switching in care categories, and one suppressed category
+- pet profile shows highly regular pet food, household companion categories, and cleaner feedback
+
+The underlying mock purchases are defined as eBon baskets, not as isolated single-item events. Each receipt can contain multiple line items, so seasonality, stock-up behavior, companion products, and noise purchases are represented closer to a real shopping trip. The UI still renders the line items under “Meine Einkäufe”, but the source data is basket-based.
+
+This makes the prediction cards demonstrate different reason codes instead of showing the same interval explanation repeatedly.
 
 ## Privacy Assumption
 

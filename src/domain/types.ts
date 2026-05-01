@@ -32,6 +32,16 @@ export type Purchase = {
 export type PredictionLevel = "category" | "product";
 export type Urgency = "not_urgent" | "soon" | "probably_needed_now" | "overdue";
 export type Confidence = "low" | "medium" | "high";
+export type RecommendationTier = "high" | "medium" | "low";
+export type PredictionReasonCode =
+  | "recurring_interval"
+  | "stockup_adjusted"
+  | "feedback_postponed"
+  | "stable_history"
+  | "irregular_history"
+  | "low_data"
+  | "urgent_timing"
+  | "seasonal_relevance";
 
 export type PredictionSignals = {
   intervalStability: "stabil" | "mittel" | "unregelmäßig";
@@ -59,6 +69,9 @@ export type RefillPrediction = {
   daysUntilNext: number;
   urgency: Urgency;
   confidence: Confidence;
+  score: number;
+  recommendationTier: RecommendationTier;
+  reasonCodes: PredictionReasonCode[];
   signals: PredictionSignals;
   explanation: string;
   suppressed: boolean;

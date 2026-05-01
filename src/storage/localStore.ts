@@ -1,8 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getMockFeedback } from "@/data/mockFeedback";
 import { getMockPurchases } from "@/data/mockPurchases";
 import { AppState, DemoProfileId } from "@/domain/types";
 
-const stateKey = "baldleer.appState.v1";
+const stateKey = "baldleer.appState.v3";
 
 export const defaultSettings = {
   refillSuggestionsEnabled: true,
@@ -15,7 +16,7 @@ export function createInitialState(profileId: DemoProfileId = "family"): AppStat
   return {
     activeProfileId: profileId,
     purchases: getMockPurchases(profileId),
-    feedback: [],
+    feedback: getMockFeedback(profileId),
     shoppingList: [],
     cart: [],
     settings: { ...defaultSettings }

@@ -12,6 +12,12 @@ export default function DashboardScreen() {
   const { state, predictions, handlePredictionAction } = useAppState();
   const urgent = predictions[0];
   const activeListItems = state.shoppingList.filter((item) => item.status === "open").length;
+  const storyHint =
+    state.activeProfileId === "family"
+      ? "Familienprofil: stabile Baby-Bedarfe, Vorratskauf bei Papierwaren und Feedback bei Waschmittel."
+      : state.activeProfileId === "single"
+        ? "Single-Profil: Kaffee-Vorratskauf, Produktwechsel bei Pflege und eine ausgeblendete Kategorie."
+        : "Haustierprofil: regelmäßiges Tierfutter, gekoppelte Haushaltsartikel und Feedback bei Reiniger.";
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -35,6 +41,7 @@ export default function DashboardScreen() {
           <Text style={styles.heroMetric}>Lokale Demo-Daten</Text>
           <Text style={styles.heroMetric}>Opt-in-fähig</Text>
         </View>
+        <Text style={styles.storyHint}>{storyHint}</Text>
       </View>
 
       <View style={styles.stats}>
@@ -139,6 +146,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "800"
   },
+  storyHint: { color: colors.textMuted, lineHeight: 20, marginTop: spacing.md, fontSize: 13 },
   stats: { flexDirection: "row", gap: spacing.md },
   priorityCard: {
     backgroundColor: colors.primaryDark,

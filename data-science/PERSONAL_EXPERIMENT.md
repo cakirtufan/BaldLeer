@@ -49,7 +49,9 @@ Evaluate:
 Models:
 
 - baseline: median refill interval
+- explainable hybrid: median interval plus stock-up, promotion, seasonality, and interval-stability adjustments
 - personal ML: logistic regression with category, interval, stock-up, promotion, coupon, quantity, spend, and seasonality features
+- median + ML ensemble: normalized median score blended with personal ML probability
 
 ## Current Result
 
@@ -67,6 +69,14 @@ Median interval baseline:
 - Recall: 0.672
 - F1: 0.588
 
+Explainable hybrid rules:
+
+- ROC AUC: 0.656
+- Average precision: 0.517
+- Precision: 0.506
+- Recall: 0.657
+- F1: 0.571
+
 Personal logistic model:
 
 - ROC AUC: 0.658
@@ -75,9 +85,17 @@ Personal logistic model:
 - Recall: 0.537
 - F1: 0.529
 
+Median + ML ensemble:
+
+- ROC AUC: 0.659
+- Average precision: 0.598
+- Precision: 0.537
+- Recall: 0.537
+- F1: 0.537
+
 ## Interpretation
 
-The personal ML model ranks likely refill events better by average precision, but it does not beat the median baseline on F1 or ROC AUC in this one-user setup.
+The personal ML model ranks likely refill events better by average precision, but it does not beat the median baseline on F1 or ROC AUC in this one-user setup. The rule-based hybrid is more product-explainable, but it also shows the risk of over-adjusting a strong baseline.
 
 That is a useful product insight, not a failure:
 
@@ -85,15 +103,17 @@ That is a useful product insight, not a failure:
 - refill behavior is sparse and category-specific
 - median interval remains a strong, explainable baseline
 - ML can help ranking, but should not replace transparent rules too early
+- stock-up and seasonality adjustments should be validated instead of assumed to improve every metric
 
 ## Product Recommendation
 
 For BaldLeer, the better near-term architecture is hybrid:
 
 1. Use median interval as the default personal predictor.
-2. Use ML-derived features as additional ranking signals.
+2. Keep stock-up, seasonality, and feedback as explainable modifiers.
 3. Prefer explainability in the mobile UI.
-4. Train stronger models only when many opt-in users and feedback outcomes exist.
+4. Use ML-derived probability as a ranking signal only after enough opt-in feedback exists.
+5. Train stronger models only when many opt-in users and feedback outcomes exist.
 
 For a real partner pilot, the next experiment should compare:
 
