@@ -86,7 +86,9 @@ It:
   - interval stability
   - data depth
   - feedback signal
+  - stock-up signal
   - ML readiness
+- adjusts the estimated refill date when the last purchase looks like a promo-driven stock-up
 
 Urgency labels:
 
@@ -133,6 +135,7 @@ Candidate model features:
 - purchase count over 3, 6, and 12 months
 - household or segment proxy, if explicitly available
 - package size and quantity
+- stock-up behavior and quantity ratio
 - product category
 - weekday, month, and seasonal effects
 - coupon or promotion exposure
@@ -147,6 +150,28 @@ Recommended production approach:
 5. Keep the user-facing explanation based on transparent signals.
 
 This keeps the feature credible for compliance, product, and data-science stakeholders.
+
+## Stock-Up Aware Refill Logic
+
+BaldLeer distinguishes between normal purchases and likely stock-up purchases. This matters because a promotion can distort purchase frequency:
+
+> If a user buys two packs during a promotion, the next suggestion should usually move later, not fire at the normal interval.
+
+The app-level predictor uses:
+
+- last quantity
+- usual quantity
+- promo flag
+- discount percent
+- explicit stock-up flag in the mock data
+
+If the last purchase is likely a stock-up, the estimated next purchase date is pushed back and the card explains:
+
+- `Vorratskauf erkannt`
+- adjusted refill interval
+- extra days added because of the larger quantity
+
+This keeps the demo explainable while reflecting the same behavior that a future ML model should learn from real eBon data.
 
 ## Demo Profiles
 

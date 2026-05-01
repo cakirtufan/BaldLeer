@@ -27,7 +27,10 @@ function purchase(id: string, daysAgo: number): Purchase {
     category: "toilet_paper",
     packageSize: "10 Rollen",
     quantity: 1,
-    price: 5.45
+    price: 5.45,
+    discountPercent: 0,
+    isPromo: false,
+    isStockup: false
   };
 }
 
@@ -72,5 +75,20 @@ describe("prediction logic", () => {
     ];
     const adjusted = applyFeedbackToPrediction(prediction, feedback);
     expect(adjusted.daysUntilNext).toBeGreaterThan(prediction.daysUntilNext);
+  });
+
+  it("extends estimated coverage after a promo stock-up purchase", () => {
+    const regular = [purchase("1", 90), purchase("2", 60), purchase("3", 30)];
+    const stockup: Purchase = {
+      ...purchase("4", 1),
+      quantity: 2,
+      discountPercent: 20,
+      isPromo: true,
+      isStockup: true
+    };
+    const [prediction] = calculateRefillPredictions([...regular, stockup], [], settings);
+    expect(prediction.stockupAdjustmentDays).toBeGreaterThan(0);
+    expect(prediction.adjustedIntervalDays).toBeGreaterThan(prediction.medianIntervalDays);
+    expect(prediction.signals.stockupSignal).toBe("Vorratskauf erkannt");
   });
 });

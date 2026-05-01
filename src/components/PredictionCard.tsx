@@ -41,6 +41,9 @@ export function PredictionCard({ prediction, compact, onAction }: Props) {
         <View style={styles.signalGrid}>
           <Text style={styles.signalChip}>Historie: {prediction.signals.dataDepth}</Text>
           <Text style={styles.signalChip}>Intervall: {prediction.signals.intervalStability}</Text>
+          <Text style={[styles.signalChip, prediction.stockupAdjustmentDays > 0 ? styles.stockupChip : null]}>
+            {prediction.signals.stockupSignal}
+          </Text>
           <Text style={styles.signalChip}>{prediction.signals.feedbackSignal}</Text>
           <Text style={styles.signalChip}>{prediction.signals.mlReadiness}</Text>
         </View>
@@ -49,7 +52,11 @@ export function PredictionCard({ prediction, compact, onAction }: Props) {
       <View style={styles.summaryStrip}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Intervall</Text>
-          <Text style={styles.summaryValue}>{prediction.medianIntervalDays} Tage</Text>
+          <Text style={styles.summaryValue}>
+            {prediction.adjustedIntervalDays === prediction.medianIntervalDays
+              ? `${prediction.medianIntervalDays} Tage`
+              : `${prediction.adjustedIntervalDays} Tage angepasst`}
+          </Text>
         </View>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Nächster Bedarf</Text>
@@ -65,6 +72,11 @@ export function PredictionCard({ prediction, compact, onAction }: Props) {
         <View style={styles.details}>
           <Text style={styles.detail}>Letzter Kauf: {formatGermanDate(prediction.lastPurchaseDate)}</Text>
           <Text style={styles.detail}>Üblicher Abstand: ca. {prediction.medianIntervalDays} Tage</Text>
+          {prediction.stockupAdjustmentDays > 0 ? (
+            <Text style={styles.detail}>
+              Vorratskauf-Anpassung: +{prediction.stockupAdjustmentDays} Tage bei {prediction.lastQuantity}× Menge
+            </Text>
+          ) : null}
           <Text style={styles.detail}>Geschätzter nächster Bedarf: {formatGermanDate(prediction.estimatedNextPurchaseDate)}</Text>
           <Text style={styles.detail}>
             {prediction.daysUntilNext >= 0
@@ -137,6 +149,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800"
   },
+  stockupChip: { backgroundColor: "#f2e6d6", color: colors.accent },
   summaryStrip: {
     backgroundColor: colors.surfaceMuted,
     borderRadius: 12,

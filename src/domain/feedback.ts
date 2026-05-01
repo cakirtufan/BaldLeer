@@ -32,7 +32,10 @@ export function createPurchaseFromPrediction(prediction: RefillPrediction): Purc
     category: prediction.category,
     packageSize: "1 Packung",
     quantity: 1,
-    price: 3.49
+    price: 3.49,
+    discountPercent: 0,
+    isPromo: false,
+    isStockup: false
   };
 }
 

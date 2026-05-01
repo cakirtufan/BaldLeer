@@ -11,6 +11,9 @@ type PurchaseSeed = {
   packageSize: string;
   quantity: number;
   price: number;
+  discountPercent?: number;
+  isPromo?: boolean;
+  isStockup?: boolean;
 };
 
 function purchase(seed: PurchaseSeed, index: number): Purchase {
@@ -24,7 +27,10 @@ function purchase(seed: PurchaseSeed, index: number): Purchase {
     category: seed.category,
     packageSize: seed.packageSize,
     quantity: seed.quantity,
-    price: seed.price
+    price: seed.price,
+    discountPercent: seed.discountPercent ?? 0,
+    isPromo: seed.isPromo ?? false,
+    isStockup: seed.isStockup ?? false
   };
 }
 
@@ -60,8 +66,11 @@ const familySeeds: PurchaseSeed[] = [
     productName: "Toilettenpapier 10 Rollen",
     category: "toilet_paper" as ProductCategory,
     packageSize: "10 Rollen",
-    quantity: 1,
-    price: 5.45
+    quantity: i === 0 ? 2 : 1,
+    price: 5.45,
+    discountPercent: i === 0 ? 20 : 0,
+    isPromo: i === 0,
+    isStockup: i === 0
   })),
   ...[12, 47, 82, 118, 155].map((daysAgo, i) => ({
     daysAgo,
@@ -70,8 +79,11 @@ const familySeeds: PurchaseSeed[] = [
     productName: "Colorwaschmittel 1,5 L",
     category: "laundry_detergent" as ProductCategory,
     packageSize: "1,5 L",
-    quantity: 1,
-    price: 4.75
+    quantity: i === 0 ? 2 : 1,
+    price: 4.75,
+    discountPercent: i === 0 ? 15 : 0,
+    isPromo: i === 0,
+    isStockup: i === 0
   })),
   ...[18, 55, 94, 132].map((daysAgo, i) => ({
     daysAgo,
@@ -93,8 +105,11 @@ const singleSeeds: PurchaseSeed[] = [
     productName: "Kaffee Crema 1 kg",
     category: "coffee" as ProductCategory,
     packageSize: "1 kg",
-    quantity: 1,
-    price: 10.49
+    quantity: i === 0 ? 2 : 1,
+    price: 10.49,
+    discountPercent: i === 0 ? 25 : 0,
+    isPromo: i === 0,
+    isStockup: i === 0
   })),
   ...[18, 76, 135].map((daysAgo, i) => ({
     daysAgo,
@@ -146,8 +161,11 @@ const petSeeds: PurchaseSeed[] = [
     productName: "Katzenfutter Huhn 12er Pack",
     category: "pet_food" as ProductCategory,
     packageSize: "12er Pack",
-    quantity: 1,
-    price: 6.95
+    quantity: i === 0 ? 3 : 1,
+    price: 6.95,
+    discountPercent: i === 0 ? 20 : 0,
+    isPromo: i === 0,
+    isStockup: i === 0
   })),
   ...[9, 32, 55, 80, 104, 129, 154].map((daysAgo, i) => ({
     daysAgo,

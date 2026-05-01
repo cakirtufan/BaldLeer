@@ -24,6 +24,9 @@ export type Purchase = {
   packageSize: string;
   quantity: number;
   price: number;
+  discountPercent?: number;
+  isPromo?: boolean;
+  isStockup?: boolean;
 };
 
 export type PredictionLevel = "category" | "product";
@@ -35,6 +38,7 @@ export type PredictionSignals = {
   dataDepth: "wenig Daten" | "solide Historie" | "starke Historie";
   feedbackSignal: "kein Feedback" | "Feedback berücksichtigt";
   mlReadiness: "regelbasiert" | "ML-ready";
+  stockupSignal: "kein Vorratskauf" | "Vorratskauf erkannt";
 };
 
 export type RefillPrediction = {
@@ -47,6 +51,10 @@ export type RefillPrediction = {
   purchaseCount: number;
   medianIntervalDays: number;
   averageIntervalDays: number;
+  adjustedIntervalDays: number;
+  usualQuantity: number;
+  lastQuantity: number;
+  stockupAdjustmentDays: number;
   estimatedNextPurchaseDate: string;
   daysUntilNext: number;
   urgency: Urgency;

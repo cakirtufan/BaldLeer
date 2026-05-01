@@ -63,6 +63,19 @@ function dataDepthLabel(purchaseCount: number): "wenig Daten" | "solide Historie
   return "wenig Daten";
 }
 
+function isStockupPurchase(purchase: Purchase, usualQuantity: number): boolean {
+  const quantityRatio = usualQuantity > 0 ? purchase.quantity / usualQuantity : purchase.quantity;
+  return Boolean(purchase.isStockup || quantityRatio >= 1.75 || (purchase.isPromo && quantityRatio > 1.2));
+}
+
+function estimateStockupAdjustmentDays(lastPurchase: Purchase, usualQuantity: number, medianIntervalDays: number): number {
+  if (!isStockupPurchase(lastPurchase, usualQuantity)) return 0;
+  const quantityRatio = Math.max(1, lastPurchase.quantity / Math.max(1, usualQuantity));
+  const quantityExtension = medianIntervalDays * Math.max(0, quantityRatio - 1) * 0.8;
+  const promoExtension = lastPurchase.isPromo ? medianIntervalDays * 0.2 : 0;
+  return Math.round(quantityExtension + promoExtension);
+}
+
 function createPrediction(
   key: string,
   displayName: string,
@@ -76,8 +89,12 @@ function createPrediction(
   const intervals = sorted.slice(1).map((purchase, index) => daysBetween(sorted[index].date, purchase.date));
   const medianIntervalDays = Math.max(1, Math.round(median(intervals)));
   const averageIntervalDays = Math.round(average(intervals));
-  const lastPurchaseDate = sorted[sorted.length - 1].date;
-  const estimatedNextPurchaseDate = addDays(lastPurchaseDate, medianIntervalDays);
+  const lastPurchase = sorted[sorted.length - 1];
+  const lastPurchaseDate = lastPurchase.date;
+  const usualQuantity = Math.max(1, Math.round(median(sorted.map((purchase) => purchase.quantity))));
+  const stockupAdjustmentDays = estimateStockupAdjustmentDays(lastPurchase, usualQuantity, medianIntervalDays);
+  const adjustedIntervalDays = medianIntervalDays + stockupAdjustmentDays;
+  const estimatedNextPurchaseDate = addDays(lastPurchaseDate, adjustedIntervalDays);
   const daysUntilNext = daysFromToday(estimatedNextPurchaseDate);
   const urgency = classifyUrgency(daysUntilNext);
   const confidence = classifyConfidence(sorted.length, intervals);
@@ -95,6 +112,10 @@ function createPrediction(
     purchaseCount: sorted.length,
     medianIntervalDays,
     averageIntervalDays,
+    adjustedIntervalDays,
+    usualQuantity,
+    lastQuantity: lastPurchase.quantity,
+    stockupAdjustmentDays,
     estimatedNextPurchaseDate,
     daysUntilNext,
     urgency,
@@ -103,10 +124,11 @@ function createPrediction(
       intervalStability: intervalStabilityLabel(variability),
       dataDepth: dataDepthLabel(sorted.length),
       feedbackSignal: "kein Feedback",
-      mlReadiness: sorted.length >= 4 && variability <= 0.45 ? "ML-ready" : "regelbasiert"
+      mlReadiness: sorted.length >= 4 && variability <= 0.45 ? "ML-ready" : "regelbasiert",
+      stockupSignal: stockupAdjustmentDays > 0 ? "Vorratskauf erkannt" : "kein Vorratskauf"
     },
     suppressed,
-    explanation: `Basierend auf deinen bisherigen Einkäufen kaufst du ${displayName} ungefähr alle ${medianIntervalDays} Tage. Der letzte Kauf war vor ${daysSinceLast} Tagen; damit ist diese Kategorie ${timingCopy(daysUntilNext)}.`
+    explanation: `Basierend auf deinen bisherigen Einkäufen kaufst du ${displayName} ungefähr alle ${medianIntervalDays} Tage. Der letzte Kauf war vor ${daysSinceLast} Tagen; damit ist diese Kategorie ${timingCopy(daysUntilNext)}.${stockupAdjustmentDays > 0 ? ` Beim letzten Kauf wurde ein Vorratskauf erkannt, deshalb verschiebt BaldLeer den Hinweis um ca. ${stockupAdjustmentDays} Tage nach hinten.` : ""}`
   };
 }
 
