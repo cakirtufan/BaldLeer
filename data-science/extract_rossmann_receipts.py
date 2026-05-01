@@ -156,7 +156,7 @@ def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input-dir", default="Rossmann")
+    parser.add_argument("--input-dir", default="data/rossmann-receipts")
     parser.add_argument("--output", default="data-science/data/rossmann_receipts.csv")
     parser.add_argument("--history-output", default="data-science/data/rossmann_history_9m.csv")
     parser.add_argument("--future-output", default="data-science/data/rossmann_future_3m.csv")

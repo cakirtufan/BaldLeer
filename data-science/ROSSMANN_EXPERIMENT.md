@@ -4,7 +4,7 @@ Date: 2026-05-01
 
 ## Setup
 
-This experiment uses locally provided Rossmann eBon PDFs from the `Rossmann/` folder.
+This experiment uses locally provided Rossmann eBon PDFs from the `data/rossmann-receipts/` folder.
 
 The parser:
 

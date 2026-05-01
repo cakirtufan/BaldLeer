@@ -48,7 +48,7 @@ data-science/outputs/personal_refill_metrics.json
 
 ## Run the Local Rossmann Receipt Benchmark
 
-If a local `Rossmann/` folder with eBon PDFs exists, extract product rows and evaluate the last three months as a holdout:
+If a local `data/rossmann-receipts/` folder with eBon PDFs exists, extract product rows and evaluate the last three months as a holdout:
 
 ```bash
 python data-science/extract_rossmann_receipts.py
