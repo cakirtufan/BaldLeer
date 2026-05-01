@@ -1,4 +1,4 @@
-# Bald leer? / Smart Refill
+# BaldLeer / Smart Refill
 
 You know that moment when you come back from the drugstore, put the bags on the table, and realize: *I forgot the one thing I actually needed.*
 
