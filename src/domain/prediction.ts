@@ -149,10 +149,10 @@ function createPrediction(
   const stockupWeight = stockupAdjustmentDays > 0 && daysUntilNext > 0 ? 0.72 : 1;
   const rawScore = Math.round(
     100 *
-      urgencyScore(daysUntilNext) *
-      confidenceWeight(confidence) *
-      stockupWeight *
-      (predictionLevel === "product" ? 0.92 : 1)
+    urgencyScore(daysUntilNext) *
+    confidenceWeight(confidence) *
+    stockupWeight *
+    (predictionLevel === "product" ? 0.92 : 1)
   );
   const score = applyUrgencyScoreFloor(rawScore, urgency);
 
